@@ -351,6 +351,33 @@
       .dir-card .meta { font-size: 14.5px; margin: 4px 0; }
       .dir-card .meta b { color: var(--ink-soft); font-weight: 600; }
       .dir-note { font-size: 13.5px; color: var(--ink-soft); margin-top: 14px; max-width: 64em; }
+
+      /* ---------- Brands A–Z index ---------- */
+      .brand-az { display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 2px; }
+      .brand-az a {
+        font-size: 13.5px; font-weight: 700; text-decoration: none; color: var(--teal);
+        border: 1px solid var(--line); background: var(--surface); border-radius: 7px;
+        padding: 5px 10px; min-width: 34px; text-align: center;
+      }
+      .brand-az a:hover { border-color: var(--teal); }
+      .brand-group { scroll-margin-top: 100px; padding-top: 20px; }
+      @media (max-width: 760px) {
+        .brand-group { scroll-margin-top: 158px; }
+      }
+      .brand-letter {
+        font-size: 24px; margin: 0 0 12px; color: var(--brass);
+        border-bottom: 1px solid var(--line); padding-bottom: 6px;
+      }
+      .brand-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+      .brand-item {
+        font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+        display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 12px 14px;
+      }
+      .brand-item:hover { border-color: var(--teal); }
+      .brand-name { font-family: "Marcellus", Georgia, serif; font-size: 17px; }
+      .brand-count { font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
       .link-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
       .link-row a {
         font-size: 14px; font-weight: 600; text-decoration: none;
@@ -487,6 +514,7 @@
     <nav class="subnav" aria-label="Site sections">
       <div class="inner" role="tablist">
         <button class="tab-btn" type="button" role="tab" data-tab="search" aria-selected="true" aria-controls="search">SEARCH</button>
+        <button class="tab-btn" type="button" role="tab" data-tab="brands" aria-selected="false" aria-controls="brands">Brands</button>
         <button class="tab-btn" type="button" role="tab" data-tab="about" aria-selected="false" aria-controls="fields">About the database</button>
         <button class="tab-btn" type="button" role="tab" data-tab="lakes" aria-selected="false" aria-controls="lakes">Got Lakes</button>
         <button class="tab-btn" type="button" role="tab" data-tab="tides" aria-selected="false" aria-controls="tides">Tides Up / Down</button>
@@ -789,6 +817,15 @@
           <p class="form-note">Opens your email app to send.</p>
           <p class="form-note">Requests are reviewed and added in our monthly database update.</p>
         </div>
+      </section>
+
+      <section id="brands" data-tabpage="brands" role="tabpanel" hidden aria-label="Brands — browse every builder A to Z">
+        <div class="section-head">
+          <h2>Every builder, A to Z</h2>
+          <p>Know the maker but not the model? This is every builder in the database, with the number of models we carry for each. Tap a letter to jump down the list; tap a brand and the search opens showing only that maker's boats.</p>
+        </div>
+        <nav class="brand-az" id="brand-az" aria-label="Jump to a letter"></nav>
+        <div id="brand-index"></div>
       </section>
 
       <section aria-label="Why the data is structured by model" data-tabpage="about" role="tabpanel" hidden>
@@ -2694,6 +2731,53 @@
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") document.getElementById("modal-back").classList.remove("open");
       });
+
+      // ---------- Brands A–Z index (Brands tab) ----------
+      // Built from the fleet data itself — every builder in BUILDERS
+      // with its model count from MODELS, grouped by first letter —
+      // so the index stays correct whenever the data re-syncs.
+      // Tapping a brand applies it to the search's builder filter
+      // (from a clean reset, like the presets) and switches to the
+      // Search tab through the tab bar's own button.
+      (function () {
+        var azEl = document.getElementById("brand-az");
+        var idxEl = document.getElementById("brand-index");
+        if (!azEl || !idxEl) return;
+        var counts = {};
+        MODELS.forEach(function (m) { counts[m.builder] = (counts[m.builder] || 0) + 1; });
+        var groups = {};
+        BUILDERS.forEach(function (b) {
+          var L = b.charAt(0).toUpperCase();
+          if (!groups[L]) groups[L] = [];
+          groups[L].push(b);
+        });
+        var letters = Object.keys(groups).sort();
+        azEl.innerHTML = letters.map(function (L) {
+          return '<a href="#brand-' + L.toLowerCase() + '">' + L + "</a>";
+        }).join("");
+        idxEl.innerHTML = letters.map(function (L) {
+          var rows = groups[L].map(function (b) {
+            var n = counts[b] || 0;
+            return '<button type="button" class="brand-item" data-brand-idx="' + BUILDERS.indexOf(b) + '">' +
+              '<span class="brand-name">' + esc(b) + "</span>" +
+              '<span class="brand-count">' + n + (n === 1 ? " model" : " models") + "</span></button>";
+          }).join("");
+          return '<div class="brand-group" id="brand-' + L.toLowerCase() + '">' +
+            '<h3 class="brand-letter">' + L + '</h3><div class="brand-list">' + rows + "</div></div>";
+        }).join("");
+        idxEl.addEventListener("click", function (e) {
+          var btn = e.target.closest ? e.target.closest("button[data-brand-idx]") : null;
+          if (!btn) return;
+          var b = BUILDERS[parseInt(btn.getAttribute("data-brand-idx"), 10)];
+          if (!b) return;
+          resetAll();
+          state.builder = b;
+          builderSel.value = b;
+          render();
+          var tabBtn = document.querySelector('.tab-btn[data-tab="search"]');
+          if (tabBtn) tabBtn.click();
+        });
+      })();
 
       document.getElementById("stat-models").textContent = MODELS.length;
       document.getElementById("stat-builders").textContent = BUILDERS.length;
@@ -5056,7 +5140,7 @@
       (function () {
         var pages = Array.prototype.slice.call(document.querySelectorAll("[data-tabpage]"));
         var btns = Array.prototype.slice.call(document.querySelectorAll(".tab-btn[data-tab]"));
-        var TAB_HASH = { search: "search", about: "fields", lakes: "lakes", tides: "tides", swell: "swell", tips: "tips", safety: "safety", didyouknow: "didyouknow", repairs: "repairs", buy: "buy", icw: "icw", feedback: "feedback" };
+        var TAB_HASH = { search: "search", brands: "brands", about: "fields", lakes: "lakes", tides: "tides", swell: "swell", tips: "tips", safety: "safety", didyouknow: "didyouknow", repairs: "repairs", buy: "buy", icw: "icw", feedback: "feedback" };
         var current = "search";
 
         function tabOf(el) {
