@@ -172,6 +172,33 @@
         border: 1px solid var(--line); border-radius: 7px;
         background: var(--surface); color: var(--ink);
       }
+      .voice-search-row { display: flex; gap: 8px; align-items: stretch; }
+      .voice-search-row input[type="text"] { flex: 1 1 auto; min-width: 0; width: auto; }
+      .btn-voice {
+        flex: none; width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+        border-radius: 7px; cursor: pointer; padding: 0;
+      }
+      .btn-voice[hidden] { display: none !important; }
+      .btn-voice:hover { border-color: var(--brass); color: var(--brass); }
+      .btn-voice:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+      .btn-voice.listening {
+        background: var(--brass); border-color: var(--brass); color: #fff;
+        box-shadow: 0 0 0 4px rgba(160, 125, 44, 0.22);
+      }
+      @media (prefers-color-scheme: dark) {
+        .btn-voice.listening { color: #131c26; }
+      }
+      .voice-status { font-size: 13.5px; color: var(--ink-soft); margin: 7px 0 0; line-height: 1.4; }
+      .voice-status[hidden] { display: none !important; }
+      .voice-status.is-listening { color: var(--teal); font-weight: 600; }
+      @media (prefers-reduced-motion: no-preference) {
+        .btn-voice.listening { animation: voice-pulse 1.6s ease-in-out infinite; }
+        @keyframes voice-pulse {
+          0%, 100% { box-shadow: 0 0 0 3px rgba(160, 125, 44, 0.18); }
+          50% { box-shadow: 0 0 0 6px rgba(160, 125, 44, 0.28); }
+        }
+      }
       input[type="range"] { width: 100%; accent-color: var(--brass); }
       .range-val { font-weight: 600; color: var(--ink); text-transform: none; letter-spacing: 0; font-size: 13px; }
       .feature-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
@@ -614,7 +641,13 @@
             </div>
             <div class="field">
               <label for="f-text">Builder or model</label>
-              <input type="text" id="f-text" placeholder="e.g. Azimut, Galeon, NC 895…" autocomplete="off" />
+              <div class="voice-search-row">
+                <input type="text" id="f-text" placeholder="e.g. Azimut, Galeon, NC 895…" autocomplete="off" />
+                <button type="button" id="btn-voice" class="btn-voice" hidden aria-label="Search by voice — tap and speak what you're looking for" aria-pressed="false" title="Search by voice">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>
+                </button>
+              </div>
+              <p class="voice-status" id="voice-status" role="status" aria-live="polite" hidden></p>
             </div>
             <div class="field">
               <label for="f-builder">Builder</label>
@@ -2615,6 +2648,96 @@
       document.getElementById("btn-more").addEventListener("click", function () { state.limit += PAGE_SIZE; renderList(); });
       document.getElementById("f-sort").addEventListener("change", function (e) { state.sort = e.target.value; render(); });
       document.getElementById("f-text").addEventListener("input", function (e) { state.text = e.target.value; render(); });
+      // ---------- Voice search (Search tab) ----------
+      // Uses the browser's built-in speech recognition where available.
+      // The mic button stays hidden where it isn't, so typing always works.
+      (function initVoiceSearch() {
+        var btn = document.getElementById("btn-voice");
+        var input = document.getElementById("f-text");
+        var status = document.getElementById("voice-status");
+        if (!btn || !input) return;
+        var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) { btn.hidden = true; if (status) status.hidden = true; return; }
+        btn.hidden = false;
+        var rec = null;
+        var listening = false;
+        function setStatus(msg, isListening) {
+          if (!status) return;
+          if (!msg) { status.hidden = true; status.textContent = ""; status.classList.remove("is-listening"); return; }
+          status.hidden = false;
+          status.textContent = msg;
+          status.classList.toggle("is-listening", !!isListening);
+        }
+        function stopUI() {
+          listening = false;
+          btn.classList.remove("listening");
+          btn.setAttribute("aria-pressed", "false");
+          btn.setAttribute("aria-label", "Search by voice \u2014 tap and speak what you're looking for");
+          btn.title = "Search by voice";
+        }
+        btn.addEventListener("click", function () {
+          if (listening && rec) {
+            try { rec.stop(); } catch (e) {}
+            return;
+          }
+          try { rec = new SR(); } catch (e) {
+            setStatus("Voice search isn't available in this browser \u2014 typing works as always.", false);
+            return;
+          }
+          rec.lang = navigator.language || "en-US";
+          rec.interimResults = true;
+          rec.continuous = false;
+          rec.maxAlternatives = 1;
+          listening = true;
+          btn.classList.add("listening");
+          btn.setAttribute("aria-pressed", "true");
+          btn.setAttribute("aria-label", "Listening \u2014 tap again to stop");
+          btn.title = "Listening \u2014 tap to stop";
+          setStatus("Listening\u2026 speak what you're looking for.", true);
+          rec.onresult = function (ev) {
+            var finalText = "";
+            var interimText = "";
+            for (var i = ev.resultIndex; i < ev.results.length; i++) {
+              var t = ev.results[i][0].transcript;
+              if (ev.results[i].isFinal) finalText += t;
+              else interimText += t;
+            }
+            var text = (finalText || interimText).trim();
+            if (!text) return;
+            input.value = text;
+            var evt;
+            try { evt = new Event("input", { bubbles: true }); }
+            catch (e) { evt = document.createEvent("Event"); evt.initEvent("input", true, true); }
+            input.dispatchEvent(evt);
+            if (finalText) setStatus("Heard: \u201C" + text + "\u201D", false);
+            else setStatus("Listening\u2026 " + text, true);
+          };
+          rec.onerror = function (ev) {
+            stopUI();
+            var err = ev && ev.error ? ev.error : "";
+            if (err === "not-allowed" || err === "service-not-allowed") {
+              setStatus("Microphone access was blocked \u2014 allow the mic in your browser to use voice search, or type instead.", false);
+            } else if (err === "no-speech") {
+              setStatus("Didn't catch that \u2014 tap the mic and try again.", false);
+            } else if (err === "aborted") {
+              setStatus("", false);
+            } else if (err === "audio-capture") {
+              setStatus("No microphone was found \u2014 type your search instead.", false);
+            } else {
+              setStatus("Voice search hit a snag \u2014 tap the mic to try again, or type your search.", false);
+            }
+          };
+          rec.onend = function () {
+            var wasListening = listening;
+            stopUI();
+            if (wasListening && status && status.textContent.indexOf("Listening") === 0) setStatus("", false);
+          };
+          try { rec.start(); } catch (e) {
+            stopUI();
+            setStatus("Couldn't start voice search \u2014 try again.", false);
+          }
+        });
+      })();
       document.getElementById("f-fuelmin").addEventListener("input", function (e) { state.fuelMin = parseInt(e.target.value, 10) || 0; render(); });
       document.getElementById("f-livewellmin").addEventListener("input", function (e) { state.livewellMin = parseInt(e.target.value, 10) || 0; render(); });
       var loaInput = document.getElementById("f-loa");
