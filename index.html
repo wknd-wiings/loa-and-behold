@@ -215,6 +215,26 @@
       }
       .result-count { font-size: 15px; color: var(--ink-soft); }
       .result-count b { color: var(--ink); font-size: 17px; }
+
+      /* ---------- Listing provenance ---------- */
+      .listing-tag {
+        display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+        color: #8a5a00; background: rgba(217, 154, 22, 0.10);
+        border: 1px solid #d99a16; border-radius: 999px; padding: 0 7px; line-height: 1.7;
+        vertical-align: middle; white-space: nowrap;
+      }
+      a.listing-tag { text-decoration: none; cursor: pointer; }
+      a.listing-tag:hover { background: rgba(217, 154, 22, 0.24); }
+      .lt-sep { color: var(--ink-soft); }
+      @media (prefers-color-scheme: dark) {
+        .listing-tag { color: #f0b93e; border-color: #b57f14; background: rgba(217, 154, 22, 0.14); }
+      }
+      .spec-legend {
+        margin-top: 18px; border: 1px solid var(--line); border-radius: var(--radius);
+        background: var(--surface-2); padding: 14px 16px;
+      }
+      .spec-legend h3 { margin: 0 0 6px; font-size: 17px; }
+      .spec-legend p { margin: 0; font-size: 14.5px; color: var(--ink-soft); max-width: 64em; }
       .more-row { text-align: center; margin-top: 22px; }
 
       /* ---------- Cards ---------- */
@@ -796,6 +816,7 @@
             <button class="chip-toggle" type="button" data-feature="fishbox" aria-pressed="false">Fish box</button>
             <button class="chip-toggle" type="button" data-feature="trollingmotor" aria-pressed="false">Trolling motor</button>
             <button class="chip-toggle" type="button" data-feature="outriggers" aria-pressed="false">Outriggers</button>
+            <button class="chip-toggle" type="button" data-feature="rodholders" aria-pressed="false">Rod holders</button>
             <button class="chip-toggle" type="button" data-feature="flybridge" aria-pressed="false">Flybridge</button>
           </div>
           <div class="feature-row" role="group" aria-label="Layout must-haves">
@@ -820,6 +841,10 @@
             <span class="result-count" id="result-count" role="status"></span>
             <button class="btn" type="button" data-goto-tab="boats">See the matching boats →</button>
             <button class="btn-reset" type="button" id="btn-reset">Reset all filters</button>
+          </div>
+          <div class="spec-legend">
+            <h3>How to read the specs</h3>
+            <p>Most specs here come straight from the manufacturer's own documents — those are builder-verified. A value marked <span class="listing-tag">per listing</span> was reported in a for-sale listing for this model and has not been factory-confirmed. We show it because it is the best information available, and we label it so you always know which kind it is.</p>
           </div>
         </div>
       </section>
@@ -887,6 +912,10 @@
         <div class="section-head">
           <h2>Every field we track, per model</h2>
           <p>The baseline schema. The search above already runs on the live fields; the rest are being verified model by model from builder layout sheets — and the list grows as new must-haves come in.</p>
+        </div>
+        <div class="spec-legend">
+          <h3>How to read the specs</h3>
+          <p>Most specs here come straight from the manufacturer's own documents — those are builder-verified. A value marked <span class="listing-tag">per listing</span> was reported in a for-sale listing for this model and has not been factory-confirmed. We show it because it is the best information available, and we label it so you always know which kind it is.</p>
         </div>
         <table class="field-table">
           <tr><th>Cabins &amp; berths <span class="status live">Live</span></th><td>Number of cabins, who sleeps where, and total berths — including convertible salon and cockpit berths, marked as convertible.</td></tr>
@@ -2161,6 +2190,7 @@
           sunpads: null, salonType: null, salonDoor: null, captDoor: null, cockpitTop: null,
           climate: null, windows: null, coverings: null, helms: null, sternBerth: null,
           stove: null, tv: null, dishwasher: null, underBed: null, propane: null, bugScreens: null,
+          convectionOven: null,
           seakeeper: r.sk, joystick: r.jy, thermal: r.th, generator: r.gn, crew: r.cw,
           bowthruster: r.bt, connected: r.ca, engineDetail: r.ed,
           sternthruster: r.st, inverter: r.iv, autopilot: r.ap, radar: r.rd, ais: r.ai,
@@ -2250,6 +2280,7 @@
           sternBerth: lay.sternBerth || null, stove: lay.stove || null, tv: lay.tv || null,
           dishwasher: lay.dishwasher || null, underBed: lay.underBed || null,
           propane: lay.propane || null, bugScreens: lay.bugScreens || null,
+          convectionOven: lay.convectionOven || null,
           seakeeper: c.seakeeper, joystick: c.joystick, thermal: base ? base.thermal : null, generator: c.generator, crew: c.crew,
           bowthruster: base ? base.bowthruster : null, connected: base ? base.connected : null,
           sternthruster: base ? base.sternthruster : null, inverter: base ? base.inverter : null,
@@ -2269,6 +2300,64 @@
         if (idx >= 0) MODELS[idx] = merged; else MODELS.push(merged);
       });
 
+      // ---------- LISTING overlay ----------
+      // DOCTRINE AMENDMENT (Douglas, 2026-10-23): for-sale listings may
+      // now fill spec gaps the builder documents leave blank — but a
+      // listing value is never builder-verified, so every value this
+      // overlay sets is flagged on the boat (listingFields, with its
+      // source in listingSources) and shown with a "per listing" tag in
+      // the spec sheet, linking back to the listing it came from.
+      // Rules: this layer runs AFTER the database, CURATED and LAYOUT
+      // layers, and an entry fills ONLY a field that is still empty /
+      // null / "not published" there — it never overwrites a
+      // builder-verified value. Equipment entries use the value
+      // "present": the spec sheet shows "Yes · per listing", never
+      // "Standard" or "Option", because a listing cannot prove the
+      // factory grade. Three field names below differ from the site's
+      // internal keys; LISTING_ALIAS maps them.
+      var LISTING_ALIAS = { fishBox: "fishbox", trollingMotor: "trollingmotor", underBedStorage: "underBed" };
+      var LISTING_FILLS = [
+        // Batch 1 — the twelve hand-profiled boats, by site id.
+        { id: "sabre-48", field: "salonDoor", value: "folding", source: "https://www.galatiyachts.com/yachts/details/2851943/2012/sabre/48-salon-express/" },
+        { id: "sabre-48", field: "windows", value: "electric", source: "https://www.galatiyachts.com/yachts/details/2851943/2012/sabre/48-salon-express/" },
+        { id: "sabre-48", field: "inverter", value: "present", source: "https://odysseysmarine.com/yacht-listing/2025-sabre-48-salon-express/" },
+        { id: "backcove-39o", field: "coverings", value: "blinds", source: "https://southjerseyyachtsales.com/yacht-listing/2022-back-cove-39o/" },
+        { id: "backcove-39o", field: "inverter", value: "present", source: "https://southjerseyyachtsales.com/yacht-listing/2022-back-cove-39o/" },
+        { id: "backcove-39o", field: "underBedStorage", value: true, source: "https://www.unitedyacht.com/used-yachts-for-sale/back-cove-390-2025-2810456/amp" },
+        { id: "backcove-39o", field: "bugScreens", value: true, source: "https://www.unitedyacht.com/used-yachts-for-sale/back-cove-390-2025-2810456/amp" },
+        { id: "jeanneau-nc895", field: "cockpitTop", value: "bimini", source: "https://dimillosyachtsales.com/yachts/2021-jeanneau-nc-895/" },
+        { id: "jeanneau-nc895", field: "autopilot", value: "present", source: "https://marinesource.com/boat/jeanneau-nc-895-2019-seattle-9974307-for-sale?sc=eyJzZWFyY2hJZCI6Ijk0NjRkYTMxNWUxZWQ3ZmVlMjQwZWVjYjA3ZWIxZTlmODMzYjhhODdkZmU5ZmE3NjFkNjY2YjIwNmRmNmZjOWIiLCJxIjoiIiwiZmlsdGVycyI6ImNpdHk9c2VhdHRsZSZjb25kaXRpb249dXNlZCZtYW51ZmFjdHVyZXI9amVhbm5lYXUmc3RhdGU9V0EiLCJwYWdlTnVtYmVyIjowLCJyb3ciOjMsImNvbHVtbiI6Mn0%3D" },
+        { id: "galeon-500-fly", field: "convectionOven", value: true, source: "https://marinesource.com/boat/galeon-500-fly-2026-san-diego-25b4fad79-for-sale" },
+        // Batch 1 — database boats, matched by exact builder + model.
+        { builder: "Ranger Tugs", model: "R-31 CB", field: "propane", value: true, source: "https://odysseysmarine.com/yacht-listing/2013-ranger-tugs-r-31-cb/" },
+        { builder: "Ranger Tugs", model: "R-31 CB", field: "ais", value: "present", source: "https://marinesource.com/boat/ranger-tug-r-31-cb-2021-anacortes-a863f4bb-for-sale" },
+        { builder: "Ranger Tugs", model: "R-43 CB", field: "propane", value: true, source: "https://www.yachtworld.com/yacht/2026-ranger-tugs-r-43-cb-10033646/" },
+        { builder: "Ranger Tugs", model: "R-27", field: "propane", value: true, source: "https://marinesource.com/boat/ranger-tug-r-27-2024-marina-del-rey-9879139-for-sale" },
+        { builder: "Ranger Tugs", model: "R-27", field: "coverings", value: "curtains", source: "https://marinesource.com/boat/ranger-tug-r-27-2024-marina-del-rey-9879139-for-sale" },
+        { builder: "Robalo", model: "R302", field: "livewellGal", value: 45, source: "https://southjerseyyachtsales.com/yacht-listing/2017-robalo-r302-center-console-2/" },
+        { builder: "Robalo", model: "R302", field: "fishBox", value: "present", source: "https://southjerseyyachtsales.com/yacht-listing/2017-robalo-r302-center-console-2/" },
+        { builder: "Robalo", model: "R302", field: "rodHolders", value: 6, source: "https://southjerseyyachtsales.com/yacht-listing/2017-robalo-r302-center-console-2/" },
+        { builder: "Robalo", model: "R302", field: "outriggers", value: "present", source: "https://marinesource.com/boat/robalo-r302-center-console-2025-tampa-a9a30083-for-sale" },
+        { builder: "Robalo", model: "246 Cayman", field: "trollingMotor", value: "present", source: "https://marinesource.com/boat/robalo-246-cayman-2026-jacksonville-beach-255c49081-for-sale" }
+      ];
+
+      function listingFieldEmpty(v) {
+        return v == null || v === "" || (typeof v === "string" && v.toLowerCase() === "not published");
+      }
+      LISTING_FILLS.forEach(function (entry) {
+        var field = LISTING_ALIAS[entry.field] || entry.field;
+        var targets = entry.id
+          ? MODELS.filter(function (m) { return m.id === entry.id; })
+          : MODELS.filter(function (m) { return m.builder === entry.builder && m.model === entry.model; });
+        targets.forEach(function (m) {
+          if (!listingFieldEmpty(m[field])) return; // never overwrite a builder-verified value
+          m[field] = entry.value;
+          if (!m.listingFields) { m.listingFields = {}; m.listingSources = {}; }
+          m.listingFields[field] = true;
+          m.listingSources[field] = entry.source;
+        });
+      });
+
       var state = {
         cabins: 0, heads: 0, sleeps: 0, engines: 0, helms: 0,
         drive: "any", type: "any", builder: "any", galley: "any", loaMax: LOA_ANY,
@@ -2278,7 +2367,7 @@
         text: "", sort: "loa-desc", limit: PAGE_SIZE,
         features: { seakeeper: false, joystick: false, thermal: false, generator: false, crew: false, flybridge: false,
           bowthruster: false, connected: false, sternthruster: false, inverter: false, autopilot: false,
-          radar: false, ais: false, fishbox: false, trollingmotor: false, outriggers: false,
+          radar: false, ais: false, fishbox: false, trollingmotor: false, outriggers: false, rodholders: false,
           captDoor: false, sternBerth: false, stoveBurner: false, stoveConv: false,
           tv: false, dishwasher: false, underBed: false, propane: false, bugScreens: false,
           refrigerator: false, freezer: false, hotwater: false }
@@ -2296,6 +2385,28 @@
       function capList(arr) { return arr.map(function (s) { return s.charAt(0).toUpperCase() + s.slice(1); }).join(", "); }
       function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
 
+      // ---------- Listing provenance display ----------
+      // A value the LISTING overlay supplied is flagged on the boat in
+      // listingFields, with its source listing in listingSources. In the
+      // spec sheet it carries this tag — a link back to that listing.
+      function isListing(m, field) { return !!(m.listingFields && m.listingFields[field]); }
+      function tagHtml(m, field) {
+        if (!isListing(m, field)) return "";
+        var url = m.listingSources ? m.listingSources[field] : null;
+        var pill = '<span class="listing-tag">per listing</span>';
+        if (url) pill = '<a class="listing-tag" href="' + url + '" target="_blank" rel="noopener" title="Reported in this for-sale listing — not factory-confirmed">per listing</a>';
+        return ' <span class="lt-sep" aria-hidden="true">·</span> ' + pill;
+      }
+      // Yes/no cabin fields (propane, under-bed storage, bug screens):
+      // a listing-sourced one reads "Yes" + the tag.
+      function boolVal(m, field) {
+        var v = m[field];
+        if (!v) return null;
+        if (isListing(m, field)) return "Yes" + tagHtml(m, field);
+        if (v === true || v === "present") return "Yes";
+        return availLabel(v);
+      }
+
       function featChips(m) {
         var chips = [];
         if (m.seakeeper) chips.push("<span>Seakeeper · <b>" + availLabel(m.seakeeper) + "</b></span>");
@@ -2306,6 +2417,69 @@
         if (m.bowthruster) chips.push("<span>Bow thruster · <b>" + availLabel(m.bowthruster) + "</b></span>");
         if (m.connected) chips.push("<span>Connected boat app · <b>" + availLabel(m.connected) + "</b></span>");
         return chips.length ? '<div class="feat-chips">' + chips.join("") + "</div>" : "";
+      }
+
+      // ---------- Text-search haystack ----------
+      // The free-text box (and voice search, which feeds the same box)
+      // scans more than names: hull material, fuel type, galley
+      // configuration, propulsion/drive text, the curated engine-fit
+      // string, and a feature-words string built from every feature the
+      // boat actually carries — so typing "propane", "inverter",
+      // "outriggers", "folding" or "blinds" finds the boats with those
+      // traits. Built once per boat and cached on the record.
+      function featureWords(m) {
+        var w = [];
+        function add() { for (var i = 0; i < arguments.length; i++) if (arguments[i]) w.push(arguments[i]); }
+        if (m.seakeeper) add("seakeeper", "gyro stabilizer");
+        if (m.joystick) add("joystick", "joystick docking");
+        if (m.generator) add("generator");
+        if (m.bowthruster) add("bow thruster");
+        if (m.sternthruster) add("stern thruster");
+        if (m.thermal) add("thermal camera", "flir");
+        if (m.inverter) add("inverter");
+        if (m.autopilot) add("autopilot");
+        if (m.radar) add("radar");
+        if (m.ais) add("ais");
+        if (m.connected) add("connected boat app", "connected app");
+        if (m.refrigerator) add("refrigerator", "fridge");
+        if (m.freezer) add("freezer");
+        if (m.hotwater) add("hot water");
+        if (m.crew) add("crew cabin");
+        if (m.fishbox) add("fish box");
+        if (m.trollingmotor) add("trolling motor");
+        if (m.outriggers) add("outriggers");
+        if (m.rodHolders) add("rod holders");
+        if (m.livewellGal != null) add("livewell");
+        if (m.sunpads) m.sunpads.forEach(function (p) { add(p + " sun pad", p + " sunpad", "sun pads", "sunpads"); });
+        if (m.salonType) add(m.salonType === "open" ? "open salon" : "enclosed salon");
+        if (m.salonDoor) add(m.salonDoor + " salon door", m.salonDoor + " door");
+        if (m.cockpitTop) { add(TOP_LABELS[m.cockpitTop]); if (m.cockpitTop === "bimini" || m.cockpitTop === "retractable") add("bimini"); }
+        if (m.windows) add(m.windows + " windows");
+        if (m.coverings) add(m.coverings);
+        if (m.climate) add(CLIMATE_LABELS[m.climate]);
+        if (m.stove === "burner") add("burner stove");
+        if (m.stove === "convection") add("convection stove", "convection oven", "convection");
+        if (m.stove === "both") add("burner stove", "convection stove", "convection oven", "convection");
+        if (m.convectionOven) add("convection oven", "convection stove", "convection");
+        if (m.propane) add("propane");
+        if (m.bugScreens) add("bug screens");
+        if (m.underBed) add("under-bed storage", "under bed storage");
+        if (m.captDoor) add("captain's door", "captains door", "captain door");
+        if (m.dishwasher) add("dishwasher");
+        if (m.tv) add("tv", "television");
+        if (m.sternBerth) add("stern berth");
+        if (m.helms) add(m.helms === "double" ? "double helm stations" : "single helm station");
+        return w.join(" ");
+      }
+
+      function haystackOf(m) {
+        if (m._hay) return m._hay;
+        var hay = [m.builder, m.model, m.type, m.engineDetail || "", m.hull || "", m.fuelType || "",
+          m.galleyLabel || "", m.driveLabel || "", m.enginesText || "", featureWords(m)].join(" ").toLowerCase();
+        // The database spells the metal both ways; either query finds it.
+        if (hay.indexOf("alumin") !== -1) hay += " aluminum aluminium";
+        m._hay = hay;
+        return hay;
       }
 
       function matches(m) {
@@ -2340,6 +2514,7 @@
         if (state.features.fishbox && !m.fishbox) return false;
         if (state.features.trollingmotor && !m.trollingmotor) return false;
         if (state.features.outriggers && !m.outriggers) return false;
+        if (state.features.rodholders && !((typeof m.rodHolders === "number" && m.rodHolders >= 1) || m.rodHolders === true)) return false;
         if (state.features.flybridge && !m.flybridge) return false;
         if (state.salon !== "any" && m.salonType !== state.salon) return false;
         if (state.salonDoor !== "any" && m.salonDoor !== state.salonDoor) return false;
@@ -2356,7 +2531,7 @@
         if (state.features.captDoor && !m.captDoor) return false;
         if (state.features.sternBerth && !m.sternBerth) return false;
         if (state.features.stoveBurner && !(m.stove === "burner" || m.stove === "both")) return false;
-        if (state.features.stoveConv && !(m.stove === "convection" || m.stove === "both")) return false;
+        if (state.features.stoveConv && !(m.stove === "convection" || m.stove === "both" || m.convectionOven)) return false;
         if (state.features.tv && !m.tv) return false;
         if (state.features.dishwasher && !m.dishwasher) return false;
         if (state.features.underBed && !m.underBed) return false;
@@ -2376,8 +2551,7 @@
             q = toks.join(" ");
           }
           if (q) {
-            var hay = (m.builder + " " + m.model + " " + m.type + " " + (m.engineDetail || "")).toLowerCase();
-            if (hay.indexOf(q) === -1) return false;
+            if (haystackOf(m).indexOf(q) === -1) return false;
           }
         }
         return true;
@@ -2425,49 +2599,64 @@
         row("Fuel capacity", m.fuelGal ? m.fuelGal + " gal" : (m.fuelCapGal != null ? m.fuelCapGal + " gal" : null));
         row("Water capacity", m.waterCapGal != null ? m.waterCapGal + " gal" : null);
         row("Holding tank", m.holdingCapGal != null ? m.holdingCapGal + " gal" : null);
-        row("Livewell", m.livewellGal != null ? m.livewellGal + " gal" : null);
-        if (m.curated) {
-          row("Seakeeper gyro", availLabel(m.seakeeper));
-          row("Joystick docking", availLabel(m.joystick));
-          row("Generator", availLabel(m.generator));
-          row("Crew cabin", availLabel(m.crew));
-        } else {
-          if (m.seakeeper) row("Seakeeper gyro", "Available");
-          if (m.joystick) row("Joystick docking", "Available");
-          if (m.generator) row("Generator", "Available");
-          if (m.crew) row("Crew cabin", "Available");
+        row("Livewell", m.livewellGal != null ? m.livewellGal + " gal" + tagHtml(m, "livewellGal") : null);
+        // Equipment rows: a listing-sourced value reads "Yes" + the
+        // "per listing" tag — never "Standard" / "Option" /
+        // "Available", because a listing cannot prove the factory grade.
+        function eqRow(label, field) {
+          var v = m[field];
+          if (!v) return;
+          if (isListing(m, field)) { row(label, "Yes" + tagHtml(m, field)); return; }
+          row(label, m.curated ? availLabel(v) : "Available");
         }
-        if (m.thermal) row("Thermal camera", (m.builder === "Formula" && m.model === "400 SSC") ? "FLIR M232 / M332 (option)" : (m.curated ? availLabel(m.thermal) : "Available"));
-        if (m.bowthruster) row("Bow thruster", m.curated ? availLabel(m.bowthruster) : "Available");
-        if (m.sternthruster) row("Stern thruster", m.curated ? availLabel(m.sternthruster) : "Available");
-        if (m.connected) row("Connected boat app", m.curated ? availLabel(m.connected) : "Available");
-        if (m.inverter) row("Inverter", m.curated ? availLabel(m.inverter) : "Available");
-        if (m.autopilot) row("Autopilot", m.curated ? availLabel(m.autopilot) : "Available");
-        if (m.radar) row("Radar", m.curated ? availLabel(m.radar) : "Available");
-        if (m.ais) row("AIS", m.curated ? availLabel(m.ais) : "Available");
-        if (m.fishbox) row("Fish box", m.curated ? availLabel(m.fishbox) : "Available");
-        row("Rod holders", m.rodHolders ? esc(m.rodHolders) : null);
-        if (m.trollingmotor) row("Trolling motor", m.curated ? availLabel(m.trollingmotor) : "Available");
-        if (m.outriggers) row("Outriggers", m.curated ? availLabel(m.outriggers) : "Available");
-        row("Sun pads", m.sunpads ? capList(m.sunpads) : null);
-        row("Salon type", m.salonType ? (m.salonType === "open" ? "Open salon" : "Enclosed salon") : null);
-        row("Salon door", m.salonDoor ? (m.salonDoor === "sliding" ? "Sliding" : "Folding") : null);
-        row("Captain's door", m.captDoor ? "Yes — helm door onto the side deck" : null);
-        row("Cockpit top", m.cockpitTop ? TOP_LABELS[m.cockpitTop] : null);
-        row("Climate", m.climate ? CLIMATE_LABELS[m.climate] : null);
-        row("Windows", m.windows ? (m.windows === "electric" ? "Electric" : "Sliding") : null);
-        row("Window coverings", m.coverings ? (m.coverings === "blinds" ? "Blinds" : "Curtains") : null);
-        row("Helm stations", m.helms ? (m.helms === "double" ? "Double — lower helm + flybridge" : "Single") : null);
-        row("Stern berth", m.sternBerth ? "Yes" : null);
-        row("Stove", m.stove ? (m.stove === "convection" ? "Convection stove" : m.stove === "both" ? "Burner + convection" : "Burner stove") : null);
-        row("Television", m.tv ? availLabel(m.tv) : null);
-        row("Dishwasher", m.dishwasher ? availLabel(m.dishwasher) : null);
-        row("Under-bed storage", m.underBed ? availLabel(m.underBed) : null);
-        row("Propane", m.propane ? availLabel(m.propane) : null);
-        row("Bug screens", m.bugScreens ? availLabel(m.bugScreens) : null);
-        if (m.refrigerator) row("Refrigerator", m.curated ? availLabel(m.refrigerator) : "Available");
-        if (m.freezer) row("Freezer", m.curated ? availLabel(m.freezer) : "Available");
-        if (m.hotwater) row("Hot water", m.curated ? availLabel(m.hotwater) : "Available");
+        function curRow(label, field) {
+          if (isListing(m, field)) { row(label, "Yes" + tagHtml(m, field)); return; }
+          row(label, availLabel(m[field]));
+        }
+        if (m.curated) {
+          curRow("Seakeeper gyro", "seakeeper");
+          curRow("Joystick docking", "joystick");
+          curRow("Generator", "generator");
+          curRow("Crew cabin", "crew");
+        } else {
+          eqRow("Seakeeper gyro", "seakeeper");
+          eqRow("Joystick docking", "joystick");
+          eqRow("Generator", "generator");
+          eqRow("Crew cabin", "crew");
+        }
+        if (m.thermal && isListing(m, "thermal")) row("Thermal camera", "Yes" + tagHtml(m, "thermal"));
+        else if (m.thermal) row("Thermal camera", (m.builder === "Formula" && m.model === "400 SSC") ? "FLIR M232 / M332 (option)" : (m.curated ? availLabel(m.thermal) : "Available"));
+        eqRow("Bow thruster", "bowthruster");
+        eqRow("Stern thruster", "sternthruster");
+        eqRow("Connected boat app", "connected");
+        eqRow("Inverter", "inverter");
+        eqRow("Autopilot", "autopilot");
+        eqRow("Radar", "radar");
+        eqRow("AIS", "ais");
+        eqRow("Fish box", "fishbox");
+        row("Rod holders", m.rodHolders ? esc(m.rodHolders) + tagHtml(m, "rodHolders") : null);
+        eqRow("Trolling motor", "trollingmotor");
+        eqRow("Outriggers", "outriggers");
+        row("Sun pads", m.sunpads ? capList(m.sunpads) + tagHtml(m, "sunpads") : null);
+        row("Salon type", m.salonType ? (m.salonType === "open" ? "Open salon" : "Enclosed salon") + tagHtml(m, "salonType") : null);
+        row("Salon door", m.salonDoor ? (m.salonDoor === "sliding" ? "Sliding" : "Folding") + tagHtml(m, "salonDoor") : null);
+        row("Captain's door", m.captDoor ? "Yes — helm door onto the side deck" + tagHtml(m, "captDoor") : null);
+        row("Cockpit top", m.cockpitTop ? TOP_LABELS[m.cockpitTop] + tagHtml(m, "cockpitTop") : null);
+        row("Climate", m.climate ? CLIMATE_LABELS[m.climate] + tagHtml(m, "climate") : null);
+        row("Windows", m.windows ? (m.windows === "electric" ? "Electric" : "Sliding") + tagHtml(m, "windows") : null);
+        row("Window coverings", m.coverings ? (m.coverings === "blinds" ? "Blinds" : "Curtains") + tagHtml(m, "coverings") : null);
+        row("Helm stations", m.helms ? (m.helms === "double" ? "Double — lower helm + flybridge" : "Single") + tagHtml(m, "helms") : null);
+        row("Stern berth", m.sternBerth ? "Yes" + tagHtml(m, "sternBerth") : null);
+        row("Stove", m.stove ? (m.stove === "convection" ? "Convection stove" : m.stove === "both" ? "Burner + convection" : "Burner stove") + tagHtml(m, "stove") : null);
+        if (m.convectionOven) row("Convection oven", "Yes" + tagHtml(m, "convectionOven"));
+        row("Television", m.tv ? availLabel(m.tv) + tagHtml(m, "tv") : null);
+        row("Dishwasher", m.dishwasher ? availLabel(m.dishwasher) + tagHtml(m, "dishwasher") : null);
+        row("Under-bed storage", boolVal(m, "underBed"));
+        row("Propane", boolVal(m, "propane"));
+        row("Bug screens", boolVal(m, "bugScreens"));
+        eqRow("Refrigerator", "refrigerator");
+        eqRow("Freezer", "freezer");
+        eqRow("Hot water", "hotwater");
         if (!m.sunpads && !m.salonType && !m.cockpitTop && !m.climate && !m.helms && !m.tv) {
           row("Layout & comfort fields", "Sun pads, salon type and door, captain's door, cockpit top, climate, windows and coverings, helm stations, stern berth and the cabin must-haves are being verified for this model from its builder equipment list.");
         }
@@ -2544,6 +2733,16 @@
         bar.classList.add("show");
       }
 
+      // Compare-table equipment value: a listing-sourced value reads
+      // "Yes" (the tag itself lives in the full spec sheet).
+      function cmpEq(m, field, alwaysGrade) {
+        if (isListing(m, field)) return "Yes";
+        var v = m[field];
+        if (m.curated && alwaysGrade) return availLabel(v);
+        if (!v) return "—";
+        return m.curated ? availLabel(v) : "Available";
+      }
+
       function openCompare() {
         if (compare.length < 2) return;
         var picked = compare.map(function (id) {
@@ -2577,26 +2776,26 @@
           ["Fuel capacity", function (m) { return m.fuelGal ? m.fuelGal + " gal" : (m.fuelCapGal != null ? m.fuelCapGal + " gal" : "—"); }],
           ["Water capacity", function (m) { return m.waterCapGal != null ? m.waterCapGal + " gal" : "—"; }],
           ["Holding tank", function (m) { return m.holdingCapGal != null ? m.holdingCapGal + " gal" : "—"; }],
-          ["Seakeeper gyro", function (m) { return m.curated ? availLabel(m.seakeeper) : (m.seakeeper ? "Available" : "—"); }],
-          ["Joystick docking", function (m) { return m.curated ? availLabel(m.joystick) : (m.joystick ? "Available" : "—"); }],
-          ["Thermal camera", function (m) { return m.thermal ? (m.curated ? availLabel(m.thermal) : "Available") : "—"; }],
-          ["Generator", function (m) { return m.curated ? availLabel(m.generator) : (m.generator ? "Available" : "—"); }],
-          ["Crew cabin", function (m) { return m.curated ? availLabel(m.crew) : (m.crew ? "Available" : "—"); }],
-          ["Bow thruster", function (m) { return m.bowthruster ? (m.curated ? availLabel(m.bowthruster) : "Available") : "—"; }],
-          ["Stern thruster", function (m) { return m.sternthruster ? (m.curated ? availLabel(m.sternthruster) : "Available") : "—"; }],
-          ["Connected boat app", function (m) { return m.connected ? (m.curated ? availLabel(m.connected) : "Available") : "—"; }],
-          ["Inverter", function (m) { return m.inverter ? (m.curated ? availLabel(m.inverter) : "Available") : "—"; }],
-          ["Autopilot", function (m) { return m.autopilot ? (m.curated ? availLabel(m.autopilot) : "Available") : "—"; }],
-          ["Radar", function (m) { return m.radar ? (m.curated ? availLabel(m.radar) : "Available") : "—"; }],
-          ["AIS", function (m) { return m.ais ? (m.curated ? availLabel(m.ais) : "Available") : "—"; }],
-          ["Refrigerator", function (m) { return m.refrigerator ? (m.curated ? availLabel(m.refrigerator) : "Available") : "—"; }],
-          ["Freezer", function (m) { return m.freezer ? (m.curated ? availLabel(m.freezer) : "Available") : "—"; }],
-          ["Hot water", function (m) { return m.hotwater ? (m.curated ? availLabel(m.hotwater) : "Available") : "—"; }],
+          ["Seakeeper gyro", function (m) { return cmpEq(m, "seakeeper", true); }],
+          ["Joystick docking", function (m) { return cmpEq(m, "joystick", true); }],
+          ["Thermal camera", function (m) { return cmpEq(m, "thermal"); }],
+          ["Generator", function (m) { return cmpEq(m, "generator", true); }],
+          ["Crew cabin", function (m) { return cmpEq(m, "crew", true); }],
+          ["Bow thruster", function (m) { return cmpEq(m, "bowthruster"); }],
+          ["Stern thruster", function (m) { return cmpEq(m, "sternthruster"); }],
+          ["Connected boat app", function (m) { return cmpEq(m, "connected"); }],
+          ["Inverter", function (m) { return cmpEq(m, "inverter"); }],
+          ["Autopilot", function (m) { return cmpEq(m, "autopilot"); }],
+          ["Radar", function (m) { return cmpEq(m, "radar"); }],
+          ["AIS", function (m) { return cmpEq(m, "ais"); }],
+          ["Refrigerator", function (m) { return cmpEq(m, "refrigerator"); }],
+          ["Freezer", function (m) { return cmpEq(m, "freezer"); }],
+          ["Hot water", function (m) { return cmpEq(m, "hotwater"); }],
           ["Livewell", function (m) { return m.livewellGal != null ? m.livewellGal + " gal" : "—"; }],
-          ["Fish box", function (m) { return m.fishbox ? (m.curated ? availLabel(m.fishbox) : "Available") : "—"; }],
+          ["Fish box", function (m) { return cmpEq(m, "fishbox"); }],
           ["Rod holders", function (m) { return m.rodHolders || "—"; }],
-          ["Trolling motor", function (m) { return m.trollingmotor ? (m.curated ? availLabel(m.trollingmotor) : "Available") : "—"; }],
-          ["Outriggers", function (m) { return m.outriggers ? (m.curated ? availLabel(m.outriggers) : "Available") : "—"; }]
+          ["Trolling motor", function (m) { return cmpEq(m, "trollingmotor"); }],
+          ["Outriggers", function (m) { return cmpEq(m, "outriggers"); }]
         ];
         var html = '<table class="compare-table"><thead><tr><th></th>' +
           picked.map(function (m) { return "<th>" + (m.photo ? '<img class="cmp-photo" src="' + m.photo.img + '" alt="" loading="lazy" />' : "") + esc(m.builder) + " " + esc(m.model) + '<button class="th-remove" type="button" data-remove-id="' + m.id + '">Remove</button></th>'; }).join("") +
@@ -2775,7 +2974,7 @@
         setStepper("cabins", 0); setStepper("heads", 0); setStepper("sleeps", 0);
         setStepper("engines", 0); setStepper("helms", 0); setStepper("draft", 0);
         ["seakeeper", "joystick", "thermal", "generator", "crew", "bowthruster", "connected", "flybridge", "captDoor", "sternBerth",
-         "sternthruster", "inverter", "autopilot", "radar", "ais", "fishbox", "trollingmotor", "outriggers",
+         "sternthruster", "inverter", "autopilot", "radar", "ais", "fishbox", "trollingmotor", "outriggers", "rodholders",
          "stoveBurner", "stoveConv", "tv", "dishwasher", "underBed", "propane", "bugScreens",
          "refrigerator", "freezer", "hotwater"].forEach(function (f) { setFeature(f, false); });
         Object.keys(state.sunpads).forEach(function (k) { state.sunpads[k] = false; });
