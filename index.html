@@ -519,7 +519,7 @@
           </div>
           <h1>Find a yacht by what's <em>actually on board</em> — not by reading 400 broker ads.</h1>
           <p class="catchphrase">Behold the specs they buried.</p>
-          <p class="lede">Cabins. Heads. IPS pods or shafts. The details brokers bury in paragraphs — or never mention — are structured here, model by model, straight from the builders' spec sheets. Search the details, not the adjectives. The full database is live below — 1,756 models from 118 builders. Cockpit seat counts appear wherever a builder publishes them, and are being counted from layout drawings for the rest.</p>
+          <p class="lede">Cabins. Heads. IPS pods or shafts. The details brokers bury in paragraphs — or never mention — are structured here, model by model, straight from the builders' spec sheets. Search the details, not the adjectives. The full database — 1,756 models from 118 builders — lives on the Boats tab, one tap away. Cockpit seat counts appear wherever a builder publishes them, and are being counted from layout drawings for the rest.</p>
           <div class="hero-stats">
             <div><b id="stat-models">12</b><span>Models profiled</span></div>
             <div><b>20+</b><span>Spec fields per model</span></div>
@@ -541,6 +541,7 @@
     <nav class="subnav" aria-label="Site sections">
       <div class="inner" role="tablist">
         <button class="tab-btn" type="button" role="tab" data-tab="search" aria-selected="true" aria-controls="search">SEARCH</button>
+        <button class="tab-btn" type="button" role="tab" data-tab="boats" aria-selected="false" aria-controls="boats">Boats</button>
         <button class="tab-btn" type="button" role="tab" data-tab="brands" aria-selected="false" aria-controls="brands">Brands</button>
         <button class="tab-btn" type="button" role="tab" data-tab="about" aria-selected="false" aria-controls="fields">About the database</button>
         <button class="tab-btn" type="button" role="tab" data-tab="lakes" aria-selected="false" aria-controls="lakes">Got Lakes</button>
@@ -560,7 +561,7 @@
       <section id="search" aria-label="Search the database" data-tabpage="search" role="tabpanel">
         <div class="search-panel">
           <h2>Search by specification</h2>
-          <p class="sub">Try the sentence you'd say out loud: <i>“Three cabins, two heads, IPS drives, under 55 feet.”</i> Every control below filters the database live. Tap <b>+ Compare</b> on any card to line up to three yachts side by side.</p>
+          <p class="sub">Try the sentence you'd say out loud: <i>“Three cabins, two heads, IPS drives, under 55 feet.”</i> Every control below filters the database live — set your specs here, then tap <b>See the matching boats</b> to view them on the Boats tab. Tap <b>+ Compare</b> on any card to line up to three yachts side by side.</p>
           <div class="preset-row" role="group" aria-label="Example searches">
             <button class="preset" type="button" data-preset="family">3 cabins · 2 heads · IPS</button>
             <button class="preset" type="button" data-preset="couple">2 cabins · joystick · under 50 ft</button>
@@ -817,8 +818,17 @@
           </div>
           <div class="search-actions">
             <span class="result-count" id="result-count" role="status"></span>
+            <button class="btn" type="button" data-goto-tab="boats">See the matching boats →</button>
             <button class="btn-reset" type="button" id="btn-reset">Reset all filters</button>
           </div>
+        </div>
+      </section>
+
+      <section id="boats" data-tabpage="boats" role="tabpanel" hidden aria-label="All the boats — every model matching your search">
+        <div class="section-head">
+          <h2>All the boats</h2>
+          <p>Every model that matches the specs set on the Search tab — this list follows your filters live, and with no filters set it is the whole fleet. Tap <b>+ Compare</b> on any card to line up to three yachts side by side.</p>
+          <p style="margin-top:14px"><button class="btn ghost" type="button" data-goto-tab="search">← Refine the search</button> <button class="btn-reset" type="button" id="btn-reset-boats">Reset all filters</button></p>
         </div>
 
         <div class="cards" id="cards"></div>
@@ -855,7 +865,7 @@
       <section id="brands" data-tabpage="brands" role="tabpanel" hidden aria-label="Brands — browse every builder A to Z">
         <div class="section-head">
           <h2>Every builder, A to Z</h2>
-          <p>Know the maker but not the model? This is every builder in the database, with the number of models we carry for each. Tap a letter to jump down the list; tap a brand and the search opens showing only that maker's boats.</p>
+          <p>Know the maker but not the model? This is every builder in the database, with the number of models we carry for each. Tap a letter to jump down the list; tap a brand and the Boats tab opens showing only that maker's boats.</p>
         </div>
         <nav class="brand-az" id="brand-az" aria-label="Jump to a letter"></nav>
         <div id="brand-index"></div>
@@ -1893,7 +1903,7 @@
           <p class="form-note">Opens your email app to send.</p>
         </div>
         <h3 class="panel-sub">Missing a boat?</h3>
-        <p style="color:var(--ink-soft);max-width:64em;margin:0">If the database doesn't carry a model you're shopping, use the <a href="#boat-request">boat request box</a> at the end of the search results above — make, model and year are all it needs, and requests are reviewed and added in our monthly database update.</p>
+        <p style="color:var(--ink-soft);max-width:64em;margin:0">If the database doesn't carry a model you're shopping, use the <a href="#boat-request">boat request box</a> at the end of the boat list on the Boats tab — make, model and year are all it needs, and requests are reviewed and added in our monthly database update.</p>
       </section>
     </main>
 
@@ -2648,6 +2658,9 @@
       document.getElementById("btn-more").addEventListener("click", function () { state.limit += PAGE_SIZE; renderList(); });
       document.getElementById("f-sort").addEventListener("change", function (e) { state.sort = e.target.value; render(); });
       document.getElementById("f-text").addEventListener("input", function (e) { state.text = e.target.value; render(); });
+      document.getElementById("f-text").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { var tb = document.querySelector('.tab-btn[data-tab="boats"]'); if (tb) tb.click(); }
+      });
       // ---------- Voice search (Search tab) ----------
       // Uses the browser's built-in speech recognition where available.
       // The mic button stays hidden where it isn't, so typing always works.
@@ -2787,6 +2800,8 @@
         state.sort = "loa-desc"; document.getElementById("f-sort").value = "loa-desc";
       }
       document.getElementById("btn-reset").addEventListener("click", function () { resetAll(); render(); });
+      var resetBoats = document.getElementById("btn-reset-boats");
+      if (resetBoats) resetBoats.addEventListener("click", function () { resetAll(); render(); });
 
       document.querySelectorAll("[data-preset]").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -2861,7 +2876,8 @@
       // so the index stays correct whenever the data re-syncs.
       // Tapping a brand applies it to the search's builder filter
       // (from a clean reset, like the presets) and switches to the
-      // Search tab through the tab bar's own button.
+      // Boats tab through the tab bar's own button, so the visitor
+      // lands on that maker's boats.
       (function () {
         var azEl = document.getElementById("brand-az");
         var idxEl = document.getElementById("brand-index");
@@ -2897,7 +2913,7 @@
           state.builder = b;
           builderSel.value = b;
           render();
-          var tabBtn = document.querySelector('.tab-btn[data-tab="search"]');
+          var tabBtn = document.querySelector('.tab-btn[data-tab="boats"]');
           if (tabBtn) tabBtn.click();
         });
       })();
@@ -5263,7 +5279,7 @@
       (function () {
         var pages = Array.prototype.slice.call(document.querySelectorAll("[data-tabpage]"));
         var btns = Array.prototype.slice.call(document.querySelectorAll(".tab-btn[data-tab]"));
-        var TAB_HASH = { search: "search", brands: "brands", about: "fields", lakes: "lakes", tides: "tides", swell: "swell", tips: "tips", safety: "safety", didyouknow: "didyouknow", repairs: "repairs", buy: "buy", icw: "icw", feedback: "feedback" };
+        var TAB_HASH = { search: "search", boats: "boats", brands: "brands", about: "fields", lakes: "lakes", tides: "tides", swell: "swell", tips: "tips", safety: "safety", didyouknow: "didyouknow", repairs: "repairs", buy: "buy", icw: "icw", feedback: "feedback" };
         var current = "search";
 
         function tabOf(el) {
@@ -5307,8 +5323,23 @@
             if (t && t !== current) showTab(t);
             return;
           }
-          if (e.target.closest("[data-preset]") && current !== "search") showTab("search");
+          if (e.target.closest("[data-preset]") && current !== "boats") showTab("boats");
         }, true);
+
+        // Buttons that jump straight to another tab (e.g. "See the
+        // matching boats" on the Search tab, "Refine the search" on
+        // the Boats tab): switch, record the hash, scroll to the top.
+        document.addEventListener("click", function (e) {
+          if (!e.target.closest) return;
+          var g = e.target.closest("[data-goto-tab]");
+          if (!g) return;
+          var name = g.getAttribute("data-goto-tab");
+          showTab(name);
+          var h = TAB_HASH[name];
+          if (h) { try { history.pushState(null, "", "#" + h); } catch (err) {} }
+          var p = firstPage(name);
+          if (p) p.scrollIntoView({ block: "start" });
+        });
 
         function fromHash() {
           var id = window.location.hash.slice(1);
