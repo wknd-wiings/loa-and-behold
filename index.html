@@ -892,13 +892,14 @@
           <button class="dock-toggle" type="button" aria-expanded="false" aria-controls="dock-panel-marina">
             <span class="dock-icon" aria-hidden="true">🎉</span>
             <span class="dock-name">The Marina</span>
-            <span class="dock-count">4 tabs</span>
+            <span class="dock-count">5 tabs</span>
             <span class="dock-chevron" aria-hidden="true">▾</span>
           </button>
           <div class="dock-panel" id="dock-panel-marina" aria-hidden="true" inert>
             <div class="dock-tabs" role="tablist" aria-label="The Marina">
               <button class="tab-btn" type="button" role="tab" data-tab="shows" aria-selected="false" aria-controls="shows">Boat Shows</button>
               <button class="tab-btn" type="button" role="tab" data-tab="events" aria-selected="false" aria-controls="events">Water Events</button>
+              <button class="tab-btn" type="button" role="tab" data-tab="gotgames" aria-selected="false" aria-controls="got-games">Got Games</button>
               <button class="tab-btn" type="button" role="tab" data-tab="feedback" aria-selected="false" aria-controls="feedback">Feedback</button>
               <button class="tab-btn" type="button" role="tab" data-tab="about" aria-selected="false" aria-controls="fields">About the database</button>
             </div>
@@ -2891,6 +2892,31 @@
             <p class="meta">Miami, FL (Biscayne Bay, Coconut Grove)</p>
             <p>700+ young sailors race on Biscayne Bay — hosted by Coral Reef Yacht Club since 1946, one of the largest youth regattas in the country.</p>
             <p class="meta"><a href="https://www.coralreefyachtclub.org/Boating/Regattas.aspx" target="_blank" rel="noopener">Official page</a></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="got-games" data-tabpage="gotgames" role="tabpanel" hidden aria-label="Got Games — 20 offline games for boaters">
+        <div class="section-head">
+          <h2>Got Games — 20 games that need no signal</h2>
+          <p>Out on the water, the bars disappear. Got Games is one Android app with 20 quick games that play fully offline — no cellular, no Wi-Fi, no account. Download it before you leave the dock and it works offshore, at anchor, or anywhere the map goes blank. <b>No service? We got you covered.</b></p>
+        </div>
+        <div class="dir-grid">
+          <div class="dir-card">
+            <h3>The shelf</h3>
+            <p>Twenty games in the one download, including You Were That Close, Stack the Suitcases, Baggage Claim, Sky Pairs and Bag Pop! — a full shelf of 20, ready before you cast off.</p>
+          </div>
+          <div class="dir-card">
+            <h3>Built for a spare minute</h3>
+            <p>Every game is one-tap simple and portrait, made for a spare minute at the helm, on the hook, or waiting out the weather. No signal, no sign-in, no fuss — they just play.</p>
+          </div>
+          <div class="dir-card">
+            <h3>Get it before you cast off</h3>
+            <p class="stats">$4.99 — one payment, yours to keep</p>
+            <p>Android. About 42 MB.</p>
+            <p style="margin: 12px 0"><a class="btn" style="display: inline-block; text-decoration: none" href="https://buy.stripe.com/test_9B63cp90X0hw6bjewhfIs01">Buy Got Games — $4.99</a></p>
+            <p>After checkout you'll land on a thank-you page with your download. On your phone: open Downloads, tap got-games-v105.apk, and allow the install when Android asks.</p>
+            <p class="meta">Sold by McKrazies Reign. Plays entirely offline; the app collects no data.</p>
           </div>
         </div>
       </section>
@@ -6468,7 +6494,7 @@
       (function () {
         var pages = Array.prototype.slice.call(document.querySelectorAll("[data-tabpage]"));
         var btns = Array.prototype.slice.call(document.querySelectorAll(".tab-btn[data-tab]"));
-        var TAB_HASH = { search: "search", boats: "boats", brands: "brands", about: "fields", lakes: "lakes", tides: "tides", swell: "swell", tips: "tips", safety: "safety", castoff: "castoff", winterize: "winterize", parts: "parts", knowyourboat: "knowyourboat", didyouknow: "didyouknow", repairs: "repairs", buy: "buy", icw: "icw", shows: "shows", events: "events", feedback: "feedback" };
+        var TAB_HASH = { search: "search", boats: "boats", brands: "brands", about: "fields", lakes: "lakes", tides: "tides", swell: "swell", tips: "tips", safety: "safety", castoff: "castoff", winterize: "winterize", parts: "parts", knowyourboat: "knowyourboat", didyouknow: "didyouknow", repairs: "repairs", buy: "buy", icw: "icw", shows: "shows", events: "events", feedback: "feedback", gotgames: "got-games" };
         var current = "search";
         var docks = Array.prototype.slice.call(document.querySelectorAll("[data-dock]"));
 
