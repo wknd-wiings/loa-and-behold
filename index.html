@@ -765,6 +765,75 @@
         color: var(--brass); font-size: 17.5px; margin: 0 0 7px; }
       .stop-card.flash { outline: 3px solid var(--brass); outline-offset: 2px; }
       .icw-list-intro { color: var(--ink-soft); max-width: 64em; margin: 10px 0 4px; }
+
+      /* ---------- Ahoy, Games! — offline game bundles (Chart Room skin) ---------- */
+      #got-games { scroll-margin-top: 14px; }
+      p.gg-eyebrow {
+        font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase;
+        color: var(--brass-bright); font-weight: 600; margin: 0 0 10px;
+      }
+      p.gg-tagline {
+        font-family: var(--font-display); font-size: clamp(19px, 2.4vw, 24px);
+        color: var(--ink); margin: 0;
+      }
+      .gg-btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+      .gg-btn {
+        font: inherit; font-size: 16.5px; font-weight: 700; cursor: pointer;
+        min-height: 52px; padding: 13px 20px; border-radius: 10px;
+        border: 1px solid var(--brass); color: var(--on-accent);
+        background: var(--btn-bg);
+        background-image: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 55%, rgba(0,0,0,0.12));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 5px 12px rgba(29,47,69,0.28);
+        transition: transform 120ms ease, box-shadow 120ms ease;
+        text-align: center; text-decoration: none;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .gg-btn-row .gg-btn { flex: 1 1 230px; }
+      .gg-btn:hover { filter: brightness(1.06); }
+      .gg-btn:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 5px rgba(29,47,69,0.28); }
+      .gg-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+      .gg-deal {
+        display: flex; width: min(520px, 100%); margin: 12px auto 0;
+        background: var(--ink); border-color: var(--ink);
+      }
+      .gg-deal-mega { width: min(620px, 100%); font-size: 20px; min-height: 64px; padding: 18px 24px; }
+      .gg-panel {
+        position: relative; margin-top: 16px;
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        box-shadow: var(--shadow); padding: 22px 22px 18px;
+      }
+      .gg-panel[hidden] { display: none; }
+      .gg-panel h3 { font-size: 24px; margin: 0 44px 4px 0; }
+      .gg-facts { color: var(--ink-soft); font-weight: 600; margin: 0 0 6px; }
+      .gg-group { margin-top: 14px; }
+      .gg-group h4 {
+        font-family: var(--font-display); font-variant: small-caps; letter-spacing: 0.04em;
+        color: var(--brass); font-size: 18px; font-weight: 400; margin: 0 0 5px;
+      }
+      .gg-names { margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--ink); }
+      .gg-cta-row { margin-top: 18px; }
+      .gg-cta-row:empty { display: none; }
+      .gg-note { font-size: 14px; color: var(--ink-soft); margin: 14px 0 0; }
+      .gg-close {
+        position: absolute; top: 10px; right: 10px;
+        width: 44px; height: 44px; border-radius: 999px; cursor: pointer;
+        border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+        font-size: 22px; line-height: 1; font-family: inherit;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 5px rgba(29,47,69,0.18);
+        transition: transform 120ms ease, box-shadow 120ms ease;
+      }
+      .gg-close:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(29,47,69,0.18); }
+      .gg-close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+      .gg-windows { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 26px; }
+      .gg-win-lead { color: var(--ink-soft); margin: 0; max-width: 46em; }
+      .gg-win-big {
+        font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px);
+        color: var(--ink); margin: 10px 0 0;
+      }
+      .gg-closing { color: var(--ink-soft); margin: 30px 0 0; font-size: 15px; }
+      @media (prefers-reduced-motion: reduce) {
+        .gg-btn, .gg-close { transition: none; }
+      }
 </style>
   </head>
   <body>
@@ -892,13 +961,14 @@
           <button class="dock-toggle" type="button" aria-expanded="false" aria-controls="dock-panel-marina">
             <span class="dock-icon" aria-hidden="true">🎉</span>
             <span class="dock-name">The Marina</span>
-            <span class="dock-count">4 tabs</span>
+            <span class="dock-count">5 tabs</span>
             <span class="dock-chevron" aria-hidden="true">▾</span>
           </button>
           <div class="dock-panel" id="dock-panel-marina" aria-hidden="true" inert>
             <div class="dock-tabs" role="tablist" aria-label="The Marina">
               <button class="tab-btn" type="button" role="tab" data-tab="shows" aria-selected="false" aria-controls="shows">Boat Shows</button>
               <button class="tab-btn" type="button" role="tab" data-tab="events" aria-selected="false" aria-controls="events">Water Events</button>
+              <button class="tab-btn" type="button" data-scrollto="got-games" aria-controls="got-games">Ahoy, Games!</button>
               <button class="tab-btn" type="button" role="tab" data-tab="feedback" aria-selected="false" aria-controls="feedback">Feedback</button>
               <button class="tab-btn" type="button" role="tab" data-tab="about" aria-selected="false" aria-controls="fields">About the database</button>
             </div>
@@ -908,6 +978,41 @@
     </nav>
 
     <main class="wrap">
+      <section id="got-games" aria-label="Ahoy, Games!">
+        <div class="section-head">
+          <p class="gg-eyebrow">For iPhone &amp; iPad (iOS)</p>
+          <h2>Ahoy, Games!</h2>
+          <p class="gg-tagline">No network, no problem.</p>
+        </div>
+
+        <div class="gg-btn-row" role="group" aria-label="Games for iPhone and iPad">
+          <button class="gg-btn" type="button" data-gg-bundle="ios-got" aria-expanded="false" aria-controls="gg-panel">Got Games $4.99</button>
+          <button class="gg-btn" type="button" data-gg-bundle="ios-lab" aria-expanded="false" aria-controls="gg-panel">One More Try Lab $4.99</button>
+        </div>
+        <button class="gg-btn gg-deal" type="button" data-gg-bundle="ios-both" aria-expanded="false" aria-controls="gg-panel">Get both bundles</button>
+
+        <div class="gg-panel" id="gg-panel" hidden>
+          <button class="gg-close" type="button" id="gg-close" aria-label="Close bundle details">×</button>
+          <h3 id="gg-panel-title"></h3>
+          <p class="gg-facts" id="gg-panel-facts"></p>
+          <div id="gg-panel-list"></div>
+          <div class="gg-cta-row" id="gg-panel-cta"></div>
+          <p class="gg-note" id="gg-panel-note"></p>
+        </div>
+
+        <div class="gg-windows">
+          <p class="gg-win-lead">Prefer to play on your computer? Get the McKrazies bundles for Windows — download, install, desktop icon and play.</p>
+          <p class="gg-win-big">We have the bundles for Windows as well</p>
+          <div class="gg-btn-row" role="group" aria-label="Games for Windows">
+            <button class="gg-btn" type="button" data-gg-bundle="win-got" aria-expanded="false" aria-controls="gg-panel">Got Games $4.99</button>
+            <button class="gg-btn" type="button" data-gg-bundle="win-lab" aria-expanded="false" aria-controls="gg-panel">One More Try Lab — $4.99</button>
+          </div>
+          <button class="gg-btn gg-deal gg-deal-mega" type="button" data-gg-bundle="win-both" aria-expanded="false" aria-controls="gg-panel">Get both bundles — $8.99 · Save a dollar</button>
+        </div>
+
+        <p class="gg-closing">For iPhone &amp; iPad (iOS) — Android coming later.</p>
+      </section>
+
       <section id="search" aria-label="Search the database" data-tabpage="search" role="tabpanel">
         <div class="search-panel">
           <h2>Plot Your Criteria</h2>
@@ -6581,6 +6686,153 @@
         }
         window.addEventListener("hashchange", fromHash);
         fromHash();
+      })();
+    </script>
+
+    <script>
+      // ---------- Ahoy, Games! — shared bundle panel + dock scroll link ----------
+      (function () {
+        var GAMES_26 = [
+          "You Were That Close", "Stack the Suitcases", "Baggage Claim", "Turbulence!",
+          "Gate Dash", "Runway Lights", "Tray Table Tidy", "Passport Stamp",
+          "Coffee Pour", "Parachute Panic", "Jet Stream", "Final Call",
+          "Sky Pairs", "Customs Line", "Layover", "Bag Pop!",
+          "Buckle Up!", "De-Ice!", "Bag Sort!", "Sky Swap",
+          "Hatchet Toss", "Block Party", "Orb Pop", "Pin Order",
+          "Flow Line", "Pocket Golf"
+        ];
+        var LABS = ["Run the Edge", "Five of Five", "Split Second", "Last Light"];
+        var VEGAS = ["Roulette", "Blackjack", "Poker", "Craps", "Slots"];
+        var PANELS = {
+          "ios-got": {
+            title: "Got Games — iPhone & iPad",
+            facts: "$4.99 · fully offline · all 26 games in one app",
+            groups: [["All 26 games", GAMES_26]],
+            cta: null,
+            note: "Got Games is coming to the App Store on November 27, priced $4.99. The Windows bundle below is available right now."
+          },
+          "ios-lab": {
+            title: "One More Try Lab — iPhone & iPad",
+            facts: "$4.99 · fully offline · a separate app from Got Games",
+            groups: [["The four labs", LABS], ["Plus the Vegas casino tab", VEGAS]],
+            cta: null,
+            note: "One More Try Lab is coming to the App Store on November 27, priced $4.99. The Windows bundle below is available right now."
+          },
+          "ios-both": {
+            title: "Both apps — iPhone & iPad",
+            facts: "Got Games + One More Try Lab · fully offline",
+            groups: [
+              ["Got Games — all 26 games", GAMES_26],
+              ["One More Try Lab — the four labs", LABS],
+              ["One More Try Lab — Vegas casino tab", VEGAS]
+            ],
+            cta: null,
+            note: "Both apps are coming to the App Store on November 27 — $4.99 each. The Windows bundles below are available right now, and the $8.99 bundle price applies to the Windows downloads."
+          },
+          "win-got": {
+            title: "Got Games — for Windows",
+            facts: "All 26 games — $4.99 · fully offline",
+            groups: [["All 26 games", GAMES_26]],
+            cta: { label: "Buy Got Games — $4.99", href: "https://buy.stripe.com/9B614n7wydafbBMeyT7g400" },
+            note: "Secure checkout on Stripe · download, install, desktop icon and play"
+          },
+          "win-lab": {
+            title: "One More Try Lab — for Windows",
+            facts: "$4.99 · fully offline",
+            groups: [["The four labs", LABS], ["Plus the Vegas casino tab", VEGAS]],
+            cta: { label: "Buy One More Try Lab — $4.99", href: "https://buy.stripe.com/3cI4gz5oqgmr49k2Qb7g401" },
+            note: "Secure checkout on Stripe · download, install, desktop icon and play"
+          },
+          "win-both": {
+            title: "Both bundles — for Windows",
+            facts: "Got Games + One More Try Lab — $8.99 · save a dollar · fully offline",
+            groups: [
+              ["Got Games — all 26 games", GAMES_26],
+              ["One More Try Lab — the four labs", LABS],
+              ["One More Try Lab — Vegas casino tab", VEGAS]
+            ],
+            cta: { label: "Get both bundles — $8.99", href: "https://buy.stripe.com/9B6fZhcQ5dafaxIfCX7g402" },
+            note: "Secure checkout on Stripe · both bundles for one price"
+          }
+        };
+
+        var panel = document.getElementById("gg-panel");
+        if (!panel) return;
+        var titleEl = document.getElementById("gg-panel-title");
+        var factsEl = document.getElementById("gg-panel-facts");
+        var listEl = document.getElementById("gg-panel-list");
+        var ctaEl = document.getElementById("gg-panel-cta");
+        var noteEl = document.getElementById("gg-panel-note");
+        var bundleBtns = Array.prototype.slice.call(document.querySelectorAll("[data-gg-bundle]"));
+        var openKey = null;
+        var lastBtn = null;
+
+        function markExpanded(active) {
+          bundleBtns.forEach(function (b) {
+            b.setAttribute("aria-expanded", b === active ? "true" : "false");
+          });
+        }
+        function closePanel(focusBack) {
+          panel.hidden = true;
+          openKey = null;
+          markExpanded(null);
+          if (focusBack && lastBtn) lastBtn.focus();
+        }
+        function openPanel(btn) {
+          var key = btn.getAttribute("data-gg-bundle");
+          if (openKey === key && !panel.hidden) { closePanel(false); return; }
+          var d = PANELS[key];
+          if (!d) return;
+          titleEl.textContent = d.title;
+          factsEl.textContent = d.facts;
+          noteEl.textContent = d.note;
+          listEl.innerHTML = "";
+          d.groups.forEach(function (g) {
+            var wrap = document.createElement("div");
+            wrap.className = "gg-group";
+            var h = document.createElement("h4");
+            h.textContent = g[0];
+            var p = document.createElement("p");
+            p.className = "gg-names";
+            p.textContent = g[1].join(" · ");
+            wrap.appendChild(h);
+            wrap.appendChild(p);
+            listEl.appendChild(wrap);
+          });
+          ctaEl.innerHTML = "";
+          if (d.cta) {
+            var a = document.createElement("a");
+            a.className = "gg-btn";
+            a.href = d.cta.href;
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.textContent = d.cta.label;
+            ctaEl.appendChild(a);
+          }
+          var anchor = btn.closest(".gg-btn-row") || btn;
+          anchor.parentNode.insertBefore(panel, anchor.nextSibling);
+          panel.hidden = false;
+          openKey = key;
+          lastBtn = btn;
+          markExpanded(btn);
+        }
+        bundleBtns.forEach(function (b) {
+          b.addEventListener("click", function () { openPanel(b); });
+        });
+        var closeBtn = document.getElementById("gg-close");
+        if (closeBtn) closeBtn.addEventListener("click", function () { closePanel(true); });
+
+        // The Marina dock's "Ahoy, Games!" entry scrolls to the games
+        // section (always visible above Plot Your Criteria) instead of
+        // switching tabs.
+        Array.prototype.slice.call(document.querySelectorAll("[data-scrollto]")).forEach(function (b) {
+          b.addEventListener("click", function () {
+            var el = document.getElementById(b.getAttribute("data-scrollto"));
+            if (!el) return;
+            try { history.pushState(null, "", "#" + el.id); } catch (e) {}
+            el.scrollIntoView({ block: "start" });
+          });
+        });
       })();
     </script>
 
