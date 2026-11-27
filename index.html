@@ -533,6 +533,27 @@
       .form-status:empty { margin: 0; }
       .form-status.is-ok { font-weight: 600; }
       .form-status.is-error { font-weight: 600; color: #a4133c; }
+
+      /* ---------- Boat Owner Showcase ---------- */
+      .section-head .showcase-tagline {
+        font-family: var(--font-display); font-size: clamp(19px, 2.4vw, 24px);
+        color: var(--ink); margin: 0 0 10px;
+      }
+      .showcase-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px; margin-top: 22px;
+      }
+      .showcase-slot {
+        background: var(--surface); border: 1px dashed var(--line);
+        border-radius: var(--radius); padding: 30px 22px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 14px; text-align: center; color: var(--ink-soft);
+      }
+      .showcase-slot .compass-rose { margin-left: 0; }
+      .showcase-slot p { margin: 0; max-width: 30em; font-size: 16px; }
+      @media (max-width: 760px) {
+        .showcase-grid { grid-template-columns: 1fr; }
+      }
       @media (prefers-reduced-motion: reduce) {
         .btn-press { transition: none; }
       }
@@ -1360,6 +1381,74 @@
             <button class="btn-press" type="submit">Watch this search</button>
             <p class="form-status" id="watch-status" role="status" aria-live="polite"></p>
           </form>
+        </div>
+      </section>
+
+      <section id="owner-showcase" data-tabpage="boats" role="tabpanel" hidden aria-label="Boat Owner Showcase — boats posted by the people who own them">
+        <div class="section-head">
+          <!-- Showcase name lives on this one line — rename here and it renames everywhere on the page. -->
+          <h2>Boat Owner Showcase</h2>
+          <p class="showcase-tagline">The boats people worked hard to obtain — posted by the people who own them.</p>
+          <p>Every boat on this wall was somebody's years of work — the saving, the waiting, the weekends handed over to get her. She isn't a listing and she isn't for sale; she's the proof it can be done. If yours belongs here, send her in.</p>
+        </div>
+
+        <div class="showcase-grid" aria-label="Owner showcase gallery">
+          <div class="showcase-slot">
+            <svg class="compass-rose" width="88" height="88" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+              <circle cx="50" cy="50" r="46" stroke="#1d2f45" stroke-width="1.4"/>
+              <circle cx="50" cy="50" r="39" stroke="#1d2f45" stroke-width="0.8"/>
+              <path d="M50 8 L57 43 L92 50 L57 57 L50 92 L43 57 L8 50 L43 43 Z" fill="#1d2f45" opacity="0.82"/>
+              <path d="M50 22 L55 45 L78 50 L55 55 L50 78 L45 55 L22 50 L45 45 Z" fill="#b51e6e" opacity="0.85" transform="rotate(45 50 50)"/>
+              <circle cx="50" cy="50" r="4" fill="#fdfaf0" stroke="#1d2f45" stroke-width="1.4"/>
+              <text x="50" y="18" text-anchor="middle" font-size="10" fill="#1d2f45" font-family="Georgia, serif" font-weight="700">N</text>
+            </svg>
+            <p>The first boats go up with the next update — yours could be the first.</p>
+          </div>
+        </div>
+
+        <div class="mail-form" id="showcase-submit">
+          <h3 style="margin:0 0 6px;font-size:20px">Put your boat on the wall</h3>
+          <p style="color:var(--ink-soft);margin:0 0 14px">Tell us who she is and what she means to you. That's the whole entry — the rest is up to you.</p>
+          <form id="showcase-form" action="https://formsubmit.co/wkndwiings@gmail.com" method="POST">
+            <input type="hidden" name="_subject" value="LOA &amp; Behold — Boat Owner Showcase submission" />
+            <input type="hidden" name="_template" value="table" />
+            <div class="field">
+              <label for="sc-boat-name">Boat's name</label>
+              <input type="text" id="sc-boat-name" name="Boat's name" placeholder="e.g. Second Wind" required />
+              <p class="field-help">This is the headline of your entry.</p>
+            </div>
+            <div class="field">
+              <label for="sc-make-model">Make &amp; model</label>
+              <input type="text" id="sc-make-model" name="Make &amp; model" placeholder="e.g. Sea Ray Sundancer 320" required />
+            </div>
+            <div class="field">
+              <label for="sc-year">Year (optional)</label>
+              <input type="text" id="sc-year" name="Year" placeholder="e.g. 2019" />
+            </div>
+            <div class="field">
+              <label for="sc-home-port">Home port / city (optional)</label>
+              <input type="text" id="sc-home-port" name="Home port / city" placeholder="e.g. Knoxville, TN" />
+            </div>
+            <div class="field">
+              <label for="sc-one-line">One line about your boat (optional)</label>
+              <input type="text" id="sc-one-line" name="One line about your boat" placeholder="e.g. Ten years of overtime, worth every hour." />
+              <p class="field-help">What she means to you.</p>
+            </div>
+            <div class="field">
+              <label for="sc-owner-name">Your first name &amp; last initial (optional)</label>
+              <input type="text" id="sc-owner-name" name="Owner (first name &amp; last initial)" placeholder="e.g. Douglas M." />
+              <p class="field-help">How it will appear with your entry — leave it blank and your entry runs anonymous.</p>
+            </div>
+            <div class="field">
+              <label for="sc-email">Your email</label>
+              <input type="email" id="sc-email" name="Email" placeholder="you@example.com" required />
+              <p class="field-help">For follow-up — and if you'd like a photo with your entry, just reply to our email with one.</p>
+            </div>
+            <button class="btn-press" type="submit">Put her on the wall</button>
+            <p class="form-status" id="showcase-status" role="status" aria-live="polite"></p>
+          </form>
+          <p class="form-note">A photo is welcome but not required — entries without one still get posted, with a compass-rose tile in their place.</p>
+          <p class="form-note">Submissions are reviewed and posted with the monthly database update.</p>
         </div>
       </section>
 
@@ -6694,6 +6783,40 @@
           }).catch(function () {
             status.className = "form-status is-error";
             status.textContent = "That didn't go through. Email what you're watching for to wkndwiings@gmail.com and we'll add you.";
+          }).then(function () {
+            btn.disabled = false;
+          });
+        });
+      }
+
+      // ---------- Boat Owner Showcase form (FormSubmit) ----------
+      // Same AJAX pattern as the boat request form above.
+      var showcaseForm = document.getElementById("showcase-form");
+      if (showcaseForm) {
+        showcaseForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var status = document.getElementById("showcase-status");
+          var btn = showcaseForm.querySelector('button[type="submit"]');
+          status.className = "form-status";
+          status.textContent = "Sending her in…";
+          btn.disabled = true;
+          var data = {};
+          new FormData(showcaseForm).forEach(function (value, key) { data[key] = value; });
+          data._template = "table";
+          fetch("https://formsubmit.co/ajax/wkndwiings@gmail.com", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(data)
+          }).then(function (res) {
+            if (!res.ok) throw new Error("send failed");
+            return res.json();
+          }).then(function () {
+            status.className = "form-status is-ok";
+            status.textContent = "She's in — watch for her with the next monthly update.";
+            showcaseForm.reset();
+          }).catch(function () {
+            status.className = "form-status is-error";
+            status.textContent = "That didn't go through. Email your boat's name and details to wkndwiings@gmail.com and we'll put her on the wall.";
           }).then(function () {
             btn.disabled = false;
           });
