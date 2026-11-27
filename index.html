@@ -515,6 +515,27 @@
       .mail-form textarea { width: 100%; padding: 9px 10px; font: inherit; font-size: 15px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); min-height: 110px; resize: vertical; }
       input[type="email"], input[type="number"] { width: 100%; padding: 9px 10px; font: inherit; font-size: 15px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); }
       .form-note { font-size: 13.5px; color: var(--ink-soft); margin: 10px 0 0; }
+      .field-help { font-size: 13.5px; color: var(--ink-soft); margin: 6px 0 0; }
+      .btn-press {
+        font: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+        min-height: 52px; padding: 13px 22px; border-radius: 10px;
+        border: 1px solid var(--btn-bg); color: var(--btn-ink);
+        background: var(--btn-bg);
+        background-image: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 55%, rgba(0,0,0,0.12));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 5px 12px rgba(29,47,69,0.28);
+        transition: transform 120ms ease, box-shadow 120ms ease;
+      }
+      .btn-press:hover { filter: brightness(1.06); }
+      .btn-press:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 5px rgba(29,47,69,0.28); }
+      .btn-press:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+      .btn-press:disabled { opacity: 0.65; cursor: default; }
+      .form-status { font-size: 15px; margin: 12px 0 0; }
+      .form-status:empty { margin: 0; }
+      .form-status.is-ok { font-weight: 600; }
+      .form-status.is-error { font-weight: 600; color: #a4133c; }
+      @media (prefers-reduced-motion: reduce) {
+        .btn-press { transition: none; }
+      }
       .icw-facts { display: flex; gap: 22px; flex-wrap: wrap; margin: 20px 0 4px; }
       .icw-facts div { border-left: 2px solid var(--brass); padding-left: 12px; }
       .icw-facts b { display: block; font-family: var(--font-display); font-size: 23px; }
@@ -1295,26 +1316,27 @@
           <p>That's the honest answer a spec database can give. Loosen a filter, or reset and start again. Where a builder never published a figure, the database says so instead of guessing — and those models drop out of a spec-filtered search rather than sneaking through on a blank.</p>
         </div>
         <div class="mail-form" id="boat-request">
-          <h3 style="margin:0 0 6px;font-size:20px">Is there a boat you don't see?</h3>
-          <p style="color:var(--ink-soft);margin:0 0 14px">Name the boat and it goes into the verification queue to be profiled from its builder's spec sheet, like everything else here.</p>
-          <div class="field">
-            <label for="req-make">Make</label>
-            <input type="text" id="req-make" placeholder="e.g. Sea Ray" />
-          </div>
-          <div class="field">
-            <label for="req-model">Model</label>
-            <input type="text" id="req-model" placeholder="e.g. Sundancer 320" />
-          </div>
-          <div class="field">
-            <label for="req-year">Year</label>
-            <input type="text" id="req-year" placeholder="e.g. 2021" />
-          </div>
-          <div class="field">
-            <label for="req-notes">Notes (optional)</label>
-            <input type="text" id="req-notes" placeholder="Anything else about the boat" />
-          </div>
-          <button class="btn" type="button" id="btn-boat-request">Send request</button>
-          <p class="form-note">Opens your email app to send.</p>
+          <h3 style="margin:0 0 6px;font-size:20px">Don't See Your Boat?</h3>
+          <p style="color:var(--ink-soft);margin:0 0 14px">Looking for a boat that isn't in the search yet? Tell us the name and we'll add it to the list — with the full list of what that boat provides, specification by specification.</p>
+          <form id="boat-request-form" action="https://formsubmit.co/wkndwiings@gmail.com" method="POST">
+            <input type="hidden" name="_subject" value="LOA &amp; Behold — boat request" />
+            <input type="hidden" name="_template" value="table" />
+            <div class="field">
+              <label for="req-boat-name">Boat name</label>
+              <input type="text" id="req-boat-name" name="Boat name" placeholder="e.g. Sea Ray Sundancer 320" required />
+            </div>
+            <div class="field">
+              <label for="req-details">Year or model details (optional)</label>
+              <input type="text" id="req-details" name="Year or model details" placeholder="e.g. 2021, outboard version" />
+            </div>
+            <div class="field">
+              <label for="req-email">Your email (optional)</label>
+              <input type="email" id="req-email" name="Email" placeholder="you@example.com" />
+              <p class="field-help">So we can tell you when it's added.</p>
+            </div>
+            <button class="btn-press" type="submit">Request this boat</button>
+            <p class="form-status" id="boat-request-status" role="status" aria-live="polite"></p>
+          </form>
           <p class="form-note">Requests are reviewed and added in our monthly database update.</p>
         </div>
       </section>
@@ -6536,7 +6558,7 @@
         document.getElementById(id).addEventListener("change", icwCalc);
       });
 
-      // ---------- Mailto forms (Feedback + boat request) ----------
+      // ---------- Mailto form (Feedback) ----------
       // This is a static page with no mailbox of its own, so Send
       // composes the message in the visitor's email app.
       function sendMail(subject, lines) {
@@ -6553,16 +6575,41 @@
         lines.push(document.getElementById("fb-message").value.trim());
         sendMail("LOA & Behold feedback", lines);
       });
-      document.getElementById("btn-boat-request").addEventListener("click", function () {
-        var lines = [
-          "Make: " + document.getElementById("req-make").value.trim(),
-          "Model: " + document.getElementById("req-model").value.trim(),
-          "Year: " + document.getElementById("req-year").value.trim()
-        ];
-        var notes = document.getElementById("req-notes").value.trim();
-        if (notes) lines.push("Notes: " + notes);
-        sendMail("LOA & Behold boat request", lines);
-      });
+
+      // ---------- Boat request form (FormSubmit) ----------
+      // Sends as JSON to FormSubmit's AJAX endpoint and reports inline;
+      // with JavaScript off, the form's plain POST to FormSubmit still works.
+      var boatForm = document.getElementById("boat-request-form");
+      if (boatForm) {
+        boatForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var status = document.getElementById("boat-request-status");
+          var btn = boatForm.querySelector('button[type="submit"]');
+          status.className = "form-status";
+          status.textContent = "Sending your request…";
+          btn.disabled = true;
+          var data = {};
+          new FormData(boatForm).forEach(function (value, key) { data[key] = value; });
+          data._template = "table";
+          fetch("https://formsubmit.co/ajax/wkndwiings@gmail.com", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(data)
+          }).then(function (res) {
+            if (!res.ok) throw new Error("send failed");
+            return res.json();
+          }).then(function () {
+            status.className = "form-status is-ok";
+            status.textContent = "Request sent — we'll add it in the next database update.";
+            boatForm.reset();
+          }).catch(function () {
+            status.className = "form-status is-error";
+            status.textContent = "That didn't go through. Email the boat name to wkndwiings@gmail.com and we'll add it.";
+          }).then(function () {
+            btn.disabled = false;
+          });
+        });
+      }
     </script>
     <script>
       // ---------- Section tabs ----------
