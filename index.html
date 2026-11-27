@@ -1166,6 +1166,10 @@
               </div>
             </div>
             <div class="field">
+              <label for="f-beammax">Maximum beam (ft)</label>
+              <input type="number" id="f-beammax" min="0" step="0.5" placeholder="Any" />
+            </div>
+            <div class="field">
               <label for="f-fuelmin">Minimum fuel capacity (gal)</label>
               <input type="number" id="f-fuelmin" min="0" step="10" placeholder="Any" />
             </div>
@@ -1338,6 +1342,24 @@
             <p class="form-status" id="boat-request-status" role="status" aria-live="polite"></p>
           </form>
           <p class="form-note">Requests are reviewed and added in our monthly database update.</p>
+        </div>
+        <div class="mail-form" id="watch-search">
+          <h3 style="margin:0 0 6px;font-size:20px">Watch this search</h3>
+          <p style="color:var(--ink-soft);margin:0 0 14px">Tell us what you're watching for and we'll email you when matching boats are added in the monthly database update.</p>
+          <form id="watch-form" action="https://formsubmit.co/wkndwiings@gmail.com" method="POST">
+            <input type="hidden" name="_subject" value="LOA &amp; Behold — watch signup" />
+            <input type="hidden" name="_template" value="table" />
+            <div class="field">
+              <label for="watch-email">Email</label>
+              <input type="email" id="watch-email" name="Email" placeholder="you@example.com" required />
+            </div>
+            <div class="field">
+              <label for="watch-what">What are you watching for?</label>
+              <input type="text" id="watch-what" name="Watching for" placeholder="Make/model or specs — e.g. Galeon 500 Fly, or 3 cabins under 50 ft" />
+            </div>
+            <button class="btn-press" type="submit">Watch this search</button>
+            <p class="form-status" id="watch-status" role="status" aria-live="polite"></p>
+          </form>
         </div>
       </section>
 
@@ -3040,6 +3062,25 @@
             <label for="fb-message">Message</label>
             <textarea id="fb-message" placeholder="What's on your mind?"></textarea>
           </div>
+          <h3 class="panel-sub">Help us complete a spec</h3>
+          <p style="color:var(--ink-soft);margin:0 0 14px">Know a number we don't publish yet? Fuel capacity and range are missing for most models — send us the real figure and we'll add it in the monthly database update.</p>
+          <div class="field">
+            <label for="fb-spec-boat">Boat (make &amp; model) this spec belongs to</label>
+            <input type="text" id="fb-spec-boat" placeholder="e.g. Sea Ray Sundancer 320" />
+          </div>
+          <div class="field">
+            <label for="fb-spec-fuel">Fuel capacity (gal)</label>
+            <input type="number" id="fb-spec-fuel" min="0" step="1" placeholder="Optional" />
+          </div>
+          <div class="field">
+            <label for="fb-spec-range">Cruising range (mi or nm)</label>
+            <input type="text" id="fb-spec-range" placeholder="e.g. 320 nm" />
+          </div>
+          <div class="field">
+            <label for="fb-layout">Layout notes</label>
+            <textarea id="fb-layout" placeholder="What the brochures don't say…"></textarea>
+            <p class="field-help">Own her or know her layout? Tell us what the brochures don't — notes are reviewed and added in the monthly database update.</p>
+          </div>
           <button class="btn" type="button" id="btn-feedback">Send feedback</button>
           <p class="form-note">Opens your email app to send.</p>
         </div>
@@ -3478,7 +3519,7 @@
       var state = {
         cabins: 0, heads: 0, sleeps: 0, engines: 0, helms: 0,
         drive: "any", type: "any", builder: "any", galley: "any", loaMax: LOA_ANY,
-        fuel: "any", gpos: "any", draft: 0, fuelMin: 0, livewellMin: 0,
+        fuel: "any", gpos: "any", draft: 0, beamMax: 0, fuelMin: 0, livewellMin: 0,
         salon: "any", salonDoor: "any", top: "any", climate: "any", windows: "any", coverings: "any",
         sunpads: { bow: false, stern: false, flybridge: false, roof: false },
         text: "", sort: "loa-desc", limit: PAGE_SIZE,
@@ -3613,6 +3654,7 @@
         if (state.gpos !== "any" && m.galleyPos !== state.gpos) return false;
         if (state.fuel !== "any" && m.fuelCats.indexOf(state.fuel) === -1) return false;
         if (state.draft > 0 && (m.draftFt == null || m.draftFt > state.draft)) return false;
+        if (state.beamMax > 0 && (m.beamFt == null || m.beamFt > state.beamMax)) return false;
         if (m.loa == null ? state.loaMax < LOA_ANY : m.loa > state.loaMax) return false;
         if (state.fuelMin > 0) { var fcap = m.fuelGal != null ? m.fuelGal : m.fuelCapGal; if (fcap == null || fcap < state.fuelMin) return false; }
         if (state.livewellMin > 0 && (m.livewellGal == null || m.livewellGal < state.livewellMin)) return false;
@@ -3706,14 +3748,14 @@
         row("Engines", m.enginesText ? esc(m.enginesText) : (m.enginesLabel != null ? esc(m.enginesLabel) + (m.enginesLabel === "1" ? " engine" : " engines") + " — count as published by the builder" : null));
         row("Engine detail", m.engineDetail ? esc(m.engineDetail) : null);
         row("Propulsion", esc(m.driveLabel));
-        row("Beam", m.beamFt != null ? esc(ftLabel(m.beamFt)) : null);
-        row("Draft", m.draftFt != null ? esc(ftLabel(m.draftFt)) : null);
+        row("Beam", m.beamFt != null ? esc(ftLabel(m.beamFt)) : "Not published");
+        row("Draft", m.draftFt != null ? esc(ftLabel(m.draftFt)) : "Not published");
         row("Hull material", m.hull ? esc(m.hull) : null);
         row("Fuel type", m.fuelType ? esc(m.fuelType) : null);
         row("Galley", m.galleyLabel ? esc(m.galleyLabel) : null);
         row("Top speed", m.topKn ? m.topKn + " kn" : null);
         row("Cruising speed", m.cruiseKn ? m.cruiseKn + " kn" : null);
-        row("Fuel capacity", m.fuelGal ? m.fuelGal + " gal" : (m.fuelCapGal != null ? m.fuelCapGal + " gal" : null));
+        row("Fuel capacity", m.fuelGal ? m.fuelGal + " gal" : (m.fuelCapGal != null ? m.fuelCapGal + " gal" : "Not published"));
         row("Water capacity", m.waterCapGal != null ? m.waterCapGal + " gal" : null);
         row("Holding tank", m.holdingCapGal != null ? m.holdingCapGal + " gal" : null);
         row("Livewell", m.livewellGal != null ? m.livewellGal + " gal" + tagHtml(m, "livewellGal") : null);
@@ -4068,6 +4110,7 @@
         });
       })();
       document.getElementById("f-fuelmin").addEventListener("input", function (e) { state.fuelMin = parseInt(e.target.value, 10) || 0; render(); });
+      document.getElementById("f-beammax").addEventListener("input", function (e) { state.beamMax = parseFloat(e.target.value) || 0; render(); });
       document.getElementById("f-livewellmin").addEventListener("input", function (e) { state.livewellMin = parseInt(e.target.value, 10) || 0; render(); });
       var loaInput = document.getElementById("f-loa");
       loaInput.addEventListener("input", function (e) {
@@ -4100,6 +4143,7 @@
         state.type = "any"; document.getElementById("f-type").value = "any";
         state.text = ""; document.getElementById("f-text").value = "";
         state.fuelMin = 0; document.getElementById("f-fuelmin").value = "";
+        state.beamMax = 0; document.getElementById("f-beammax").value = "";
         state.livewellMin = 0; document.getElementById("f-livewellmin").value = "";
         state.loaMax = LOA_ANY; loaInput.value = LOA_ANY;
         document.getElementById("loa-val").textContent = "Any length";
@@ -6573,6 +6617,17 @@
         if (email) lines.push("Email: " + email);
         if (lines.length) lines.push("");
         lines.push(document.getElementById("fb-message").value.trim());
+        var specBoat = document.getElementById("fb-spec-boat").value.trim();
+        var specFuel = document.getElementById("fb-spec-fuel").value.trim();
+        var specRange = document.getElementById("fb-spec-range").value.trim();
+        var layoutNotes = document.getElementById("fb-layout").value.trim();
+        if (specBoat || specFuel || specRange) {
+          lines.push("", "Help us complete a spec:");
+          if (specBoat) lines.push("Boat (make & model): " + specBoat);
+          if (specFuel) lines.push("Fuel capacity (gal): " + specFuel);
+          if (specRange) lines.push("Cruising range (mi or nm): " + specRange);
+        }
+        if (layoutNotes) lines.push("", "Layout notes:", layoutNotes);
         sendMail("LOA & Behold feedback", lines);
       });
 
@@ -6605,6 +6660,40 @@
           }).catch(function () {
             status.className = "form-status is-error";
             status.textContent = "That didn't go through. Email the boat name to wkndwiings@gmail.com and we'll add it.";
+          }).then(function () {
+            btn.disabled = false;
+          });
+        });
+      }
+
+      // ---------- Watch this search form (FormSubmit) ----------
+      // Same AJAX pattern as the boat request form above.
+      var watchForm = document.getElementById("watch-form");
+      if (watchForm) {
+        watchForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var status = document.getElementById("watch-status");
+          var btn = watchForm.querySelector('button[type="submit"]');
+          status.className = "form-status";
+          status.textContent = "Adding you to the watch list…";
+          btn.disabled = true;
+          var data = {};
+          new FormData(watchForm).forEach(function (value, key) { data[key] = value; });
+          data._template = "table";
+          fetch("https://formsubmit.co/ajax/wkndwiings@gmail.com", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(data)
+          }).then(function (res) {
+            if (!res.ok) throw new Error("send failed");
+            return res.json();
+          }).then(function () {
+            status.className = "form-status is-ok";
+            status.textContent = "You're on the watch list — we'll email you when matching boats are added in the monthly database update.";
+            watchForm.reset();
+          }).catch(function () {
+            status.className = "form-status is-error";
+            status.textContent = "That didn't go through. Email what you're watching for to wkndwiings@gmail.com and we'll add you.";
           }).then(function () {
             btn.disabled = false;
           });
